@@ -1,5 +1,5 @@
-import Quiz from "@/components/Quiz";
+import Landing from "@/components/Landing";
 
 export default function Home() {
-  return <Quiz />;
+  return <Landing />;
 }

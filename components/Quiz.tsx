@@ -97,9 +97,8 @@ export default function Quiz() {
   const progressPct = Math.round((completed / TOTAL_STEPS) * 100);
 
   return (
-    <div className="page">
-      <div className="card">
-        <div className="brandbar">
+    <div className="card">
+      <div className="brandbar">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Talk Money With Tish & Associates" />
           <span>Talk Money With Tish &amp; Associates</span>
@@ -273,8 +272,6 @@ export default function Quiz() {
           )}
         </div>
       </div>
-      <p className="footer-note">© Talk Money With Tish &amp; Associates</p>
-    </div>
   );
 }
 
@@ -282,12 +279,8 @@ function Intro({ onStart }: { onStart: () => void }) {
   return (
     <div className="intro">
       <div className="step-meta">2-minute fit check</div>
-      <h1>Find your right next step.</h1>
-      <p>
-        A few quick questions help us point you to the best way to get started —
-        whether that's a group presentation, a 1:1 interview, or a direct
-        conversation with Tish.
-      </p>
+      <h1>Ready when you are.</h1>
+      <p>No wrong answers — just answer honestly and we'll match you to the right next step.</p>
       <ul>
         <li>8 short questions — no wrong answers</li>
         <li>Takes about two minutes</li>
