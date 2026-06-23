@@ -18,12 +18,12 @@ const sans = Quattrocento_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Join Talk Money With Tish & Associates",
+  title: "Join Talk Money With Tish",
   description:
     "A few quick questions to find the right next step for you — a group presentation, a 1:1 interview, or a conversation with Tish.",
   robots: { index: false, follow: false },
   openGraph: {
-    title: "Join Talk Money With Tish & Associates",
+    title: "Join Talk Money With Tish",
     description: "Find your right next step in under two minutes.",
     type: "website",
   },

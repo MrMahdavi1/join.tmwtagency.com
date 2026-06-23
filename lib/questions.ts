@@ -1,7 +1,8 @@
 import type { Question } from "./types";
 
 /**
- * The 8 questions from the TMWT "BPM vs 1:1 Qualifier" spec:
+ * The 8 questions from the TMWT "BPM vs 1:1 Qualifier" spec, with the
+ * client-requested copy edits (v04, 2026-06-26):
  * six scored (100 pts max) + two routing gates.
  *
  * Option `value`s are stable IDs referenced by the routing logic in
@@ -11,8 +12,8 @@ export const QUESTIONS: Question[] = [
   {
     id: "q1",
     kind: "scored",
-    prompt: "Are you currently licensed to sell life &amp; health insurance?",
-    helper: "Experience past the “training suck.” A license isn't required to move forward — it's one input, not a disqualifier.",
+    prompt: "Are you currently licensed to sell life and/or health insurance?",
+    helper: "Experience here goes beyond initial training and the early growing pains of building.",
     options: [
       { value: "q1_active", label: "Yes — and I'm actively using it (1+ year)", points: 15 },
       { value: "q1_newer", label: "Yes — licensed, but newer or not active", points: 8 },
@@ -24,76 +25,76 @@ export const QUESTIONS: Question[] = [
     kind: "scored",
     prompt: "How soon are you looking to make a move?",
     options: [
-      { value: "q2_now", label: "Ready now / this week", points: 15 },
-      { value: "q2_30", label: "Within 30 days", points: 12 },
-      { value: "q2_36", label: "3–6 months", points: 5 },
-      { value: "q2_exploring", label: "Just exploring for now", points: 0 },
+      { value: "q2_now", label: "I'm ready right now, this week.", points: 15 },
+      { value: "q2_2wk", label: "Within the next 1–2 weeks.", points: 13 },
+      { value: "q2_30", label: "Within 30 days.", points: 11 },
+      { value: "q2_exploring", label: "Just exploring for now.", points: 0 },
     ],
   },
   {
     id: "q3",
     kind: "scored",
-    prompt: "Besides income and control of your time, what are you looking for most in this next chapter?",
-    helper: "Money and freedom are givens — this is about what you're really building toward.",
+    prompt: "In addition to income and control of your time, what are you looking for most in your next venture?",
     allowMore: true,
-    morePlaceholder: "Optional — tell us more in your own words.",
+    moreRequiredForValue: "q3_else",
+    morePlaceholder: "Tell us in your own words…",
     options: [
-      { value: "q3_build", label: "To build something of my own / lasting impact", points: 20 },
-      { value: "q3_growth", label: "Growth, mentorship, and mastering a craft", points: 12 },
-      { value: "q3_team", label: "A solid team to be part of / stability", points: 5 },
-      { value: "q3_unsure", label: "I'm not sure yet", points: 0 },
+      { value: "q3_build", label: "To build my own business and have lasting impact", points: 20 },
+      { value: "q3_growth", label: "Personal & professional growth to master a craft", points: 12 },
+      { value: "q3_team", label: "To be a part of a winning team / culture", points: 5 },
+      { value: "q3_else", label: "Something else (please tell us in your own words)", points: 0 },
     ],
   },
   {
     id: "q4",
     kind: "scored",
-    prompt: "Which best describes your goal?",
+    prompt: "Which of these best describes your main goal?",
     options: [
-      { value: "q4_fulltime", label: "Build a full-time business", points: 20 },
-      { value: "q4_side", label: "A significant part-time / side income", points: 8 },
-      { value: "q4_info", label: "Just gathering information", points: 0 },
+      { value: "q4_fulltime", label: "I want to build a full-time business", points: 20 },
+      { value: "q4_side", label: "I want to add a significant part-time income", points: 8 },
+      { value: "q4_exploring", label: "I don't really have a goal, I'm just exploring", points: 0 },
     ],
   },
   {
     id: "q5",
     kind: "scored",
-    prompt: "Have you ever owned a business or built / led a team?",
+    prompt: "Do you have leadership experience? Have you ever owned a business, built and led a team, or worked in commission sales?",
     options: [
-      { value: "q5_owned", label: "Yes — owned a business, agency, or led a team", points: 15 },
-      { value: "q5_commission", label: "I have commission-sales experience", points: 10 },
-      { value: "q5_w2", label: "W-2 / salaried roles only", points: 3 },
-      { value: "q5_none", label: "No work history to note", points: 0 },
+      { value: "q5_owned", label: "Yes, I've owned my own business/agency AND built a team.", points: 15 },
+      { value: "q5_commission", label: "I have experience and success in commission sales.", points: 10 },
+      { value: "q5_w2", label: "I have only had salaried / W2 roles, but am open to new opportunities.", points: 3 },
+      { value: "q5_none", label: "I don't have leadership or sales experience to note as of now.", points: 0 },
     ],
   },
   {
     id: "q6",
     kind: "scored",
-    prompt: "Building a real business takes ongoing growth and investment in yourself in year one — time, money, and effort. How do you plan to invest in your own development?",
-    helper: "There are no wrong answers — we just want to understand where you're starting from.",
-    allowMore: true,
-    morePlaceholder: "Optional — tell us more about your plan.",
+    prompt: "Building and scaling a real business takes ongoing investment in yourself — your time, money, and effort. When it comes to investing in your own growth, which sounds most like you?",
     options: [
-      { value: "q6_plan", label: "I have a specific plan — time, money, and effort", points: 15 },
-      { value: "q6_willing", label: "Willing, but I'm not sure how yet", points: 8 },
-      { value: "q6_provided", label: "I'd expect it to be provided for me", points: 0 },
+      { value: "q6_already", label: "I already invest in my own growth (coaching, courses, tools) and plan to keep doing it.", points: 15 },
+      { value: "q6_ready", label: "I'm fully ready to invest my time, money, and effort — I just want guidance on where to put it.", points: 12 },
+      { value: "q6_results", label: "I'll invest more once I start seeing results.", points: 5 },
+      { value: "q6_provided", label: "I'd expect that investment to be provided for me.", points: 0 },
     ],
   },
   {
     id: "gateCommit",
     kind: "gate",
-    prompt: "This path is build-your-own-business — most who succeed treat it like a real commitment (roughly 10+ hours a week to start). Are you able and willing to commit?",
+    prompt: "Building this, whether as your own business or a serious side income, takes at least 10 hours per week to start, and your results follow the time you put in. Looking at your work, family, and personal responsibilities, do you realistically see yourself committing at that level consistently?",
     options: [
-      { value: "gate_yes", label: "Yes — I'm able and willing", points: 0 },
-      { value: "gate_no", label: "Not right now", points: 0 },
+      { value: "gate_yes", label: "Yes — I can realistically commit at least 10 hours a week, consistently.", points: 0 },
+      { value: "gate_no", label: "Not right now — I can't commit to that level yet.", points: 0 },
     ],
   },
   {
     id: "flagOwner",
     kind: "gate",
-    prompt: "Last one — do you currently own an agency or have producers on your team, or are you a licensed producer looking for a new “home” or partnership?",
+    prompt: "Last one — so we match you well, where are you in your journey right now?",
     options: [
-      { value: "flag_yes", label: "Yes — that's me", points: 0 },
-      { value: "flag_no", label: "No / not yet", points: 0 },
+      { value: "flag_agency", label: "I own an agency with producers on my team.", points: 0 },
+      { value: "flag_producer_team", label: "I'm a successful producer with a team.", points: 0 },
+      { value: "flag_solo", label: "I'm a licensed producer working solo — open to a new home or partnership.", points: 0 },
+      { value: "flag_newer", label: "I'm newer or just getting started.", points: 0 },
     ],
   },
 ];

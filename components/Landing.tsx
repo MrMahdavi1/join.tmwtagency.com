@@ -69,8 +69,8 @@ export default function Landing() {
         <div className="container site-header-inner">
           <a className="brand" href="#top">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Talk Money With Tish & Associates" />
-            <span>Talk Money With Tish &amp; Associates</span>
+            <img src="/logo.png" alt="Talk Money With Tish" />
+            <span>Talk Money With Tish</span>
           </a>
           <a className="btn btn-primary btn-sm" href="#quiz">
             Find your path →
@@ -167,9 +167,8 @@ export default function Landing() {
             <span className="eyebrow eyebrow-dark">Find your path</span>
             <h2 className="band-title">Let's find your right next step.</h2>
             <p className="band-lead">
-              Answer a few quick questions and we'll point you to the best way to
-              begin — a group presentation, a 1:1 interview, or a conversation with
-              Tish — and hold your spot on the spot.
+              Answer a few quick questions and we'll point you to the best place to
+              begin.
             </p>
           </div>
           <Quiz />
@@ -193,7 +192,7 @@ export default function Landing() {
       {/* ---------- Footer ---------- */}
       <footer className="site-footer">
         <div className="container">
-          © 2026 Talk Money With Tish &amp; Associates. All rights reserved.
+          © 2026 Talk Money With Tish. All rights reserved.
         </div>
       </footer>
     </div>

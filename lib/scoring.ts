@@ -39,7 +39,12 @@ export function evaluate(answers: Answers, threshold = DEFAULT_THRESHOLD): QuizR
   const reasons: string[] = [];
 
   // ---- Top gate: 1:1 with Tish ----
-  const ownerFlag = answers.flagOwner === "flag_yes";
+  // Q8 (flagOwner): agency owner, producer-with-a-team, or a solo licensed
+  // producer open to a new home all route to the premium tier.
+  const ownerFlag =
+    answers.flagOwner === "flag_agency" ||
+    answers.flagOwner === "flag_producer_team" ||
+    answers.flagOwner === "flag_solo";
   const owned = answers.q5 === "q5_owned";
   const licensed = answers.q1 === "q1_active" || answers.q1 === "q1_newer";
 
@@ -61,8 +66,8 @@ export function evaluate(answers: Answers, threshold = DEFAULT_THRESHOLD): QuizR
     reasons.push("“Just exploring” — start with the group presentation.");
     return { route: "bpm", score, maxScore: MAX_SCORE, threshold, reasons };
   }
-  if (answers.q4 === "q4_info") {
-    reasons.push("“Just gathering information” — start with the group presentation.");
+  if (answers.q4 === "q4_exploring") {
+    reasons.push("“Just exploring,” no real goal yet — start with the group presentation.");
     return { route: "bpm", score, maxScore: MAX_SCORE, threshold, reasons };
   }
 

@@ -61,6 +61,9 @@ export async function POST(req: Request) {
   if (!isValidEmail(contact.email)) {
     return NextResponse.json({ error: "Please enter a valid email." }, { status: 400 });
   }
+  if ((contact.phone || "").replace(/\D/g, "").length < 10) {
+    return NextResponse.json({ error: "A valid phone number is required." }, { status: 400 });
+  }
   if (!answers || typeof answers !== "object") {
     return NextResponse.json({ error: "Missing answers." }, { status: 400 });
   }

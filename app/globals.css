@@ -379,7 +379,12 @@ label.field {
   margin-bottom: 16px;
 }
 
+/* GHL's form_embed.js sets the iframe to position:absolute, so the wrapper
+   must be positioned and carry its own height — otherwise it collapses and
+   clips the calendar. */
 .calendar-wrap {
+  position: relative;
+  height: 760px;
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
@@ -387,10 +392,18 @@ label.field {
 }
 
 .calendar-wrap iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  min-height: 720px;
+  height: 100%;
   border: none;
   display: block;
+}
+
+@media (max-width: 560px) {
+  .calendar-wrap {
+    height: 680px;
+  }
 }
 
 .fallback {
@@ -756,4 +769,29 @@ html {
   text-align: center;
   font-size: 13px;
   color: rgba(246, 244, 239, 0.5);
+}
+
+/* ---------- Misc helpers ---------- */
+.more-hint {
+  margin: 8px 2px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.calendar-fallback-link {
+  margin: 12px 2px 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.calendar-fallback-link a {
+  color: var(--gold-deep);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.calendar-fallback-link a:hover {
+  text-decoration: underline;
 }

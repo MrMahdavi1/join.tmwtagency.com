@@ -19,6 +19,8 @@ export interface Question {
   /** Show an optional free-text box the agent reads before the meeting. */
   allowMore?: boolean;
   morePlaceholder?: string;
+  /** If this option value is selected, the free-text box becomes required. */
+  moreRequiredForValue?: string;
 }
 
 export interface ContactInfo {

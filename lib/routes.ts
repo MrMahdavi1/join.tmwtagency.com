@@ -50,8 +50,8 @@ export const ROUTES: Record<RouteId, RouteConfig> = {
     name: "Group Business Presentation",
     headline: "Start with the big picture.",
     blurb:
-      "The best next step for you is our group Business Presentation — a no-pressure overview of how this works and where you could fit. Reserve your seat below.",
-    bookingLabel: "Reserve your seat at the Business Presentation",
+      "The best next step for you is to attend a Company Overview, a no-pressure overview of how this works and where you could fit. Reserve your seat below.",
+    bookingLabel: "Reserve your seat at the Company Overview",
     calendarEnvKey: "GHL_CALENDAR_BPM",
     tagEnvKey: "GHL_TAG_BPM",
     defaultTag: "Qualifier - Group BPM",

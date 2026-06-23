@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QUESTIONS } from "@/lib/questions";
 import { ROUTES } from "@/lib/routes";
 import type { Answers, ContactInfo, Notes, RouteId } from "@/lib/types";
@@ -16,6 +16,7 @@ interface ServerResult {
 }
 
 const TOTAL_STEPS = QUESTIONS.length + 1; // questions + contact
+const STORAGE_KEY = "tmwt_qualifier_v1";
 
 export default function Quiz() {
   const [phase, setPhase] = useState<Phase>("intro");
@@ -30,6 +31,42 @@ export default function Quiz() {
   });
   const [result, setResult] = useState<ServerResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Restore in-progress answers after a page refresh, and persist as the user
+  // goes so nothing is lost (client-requested fix).
+  const hydrated = useRef(false);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.answers) setAnswers(s.answers);
+        if (s.notes) setNotes(s.notes);
+        if (s.contact) setContact((c) => ({ ...c, ...s.contact }));
+        if (typeof s.qIndex === "number") {
+          setQIndex(Math.min(Math.max(s.qIndex, 0), QUESTIONS.length - 1));
+        }
+        if (s.phase === "questions" || s.phase === "contact") setPhase(s.phase);
+      }
+    } catch {
+      /* ignore corrupt storage */
+    }
+    hydrated.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
+    // Only persist resumable phases; clear once they've completed.
+    if (phase === "submitting" || phase === "result") return;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ answers, notes, contact, qIndex, phase }),
+      );
+    } catch {
+      /* ignore quota / privacy-mode errors */
+    }
+  }, [answers, notes, contact, qIndex, phase]);
 
   const question = QUESTIONS[qIndex];
 
@@ -67,8 +104,24 @@ export default function Quiz() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
+  function validPhone(phone: string) {
+    return phone.replace(/\D/g, "").length >= 10;
+  }
+
   const contactValid =
-    contact.firstName.trim().length > 0 && validEmail(contact.email.trim());
+    contact.firstName.trim().length > 0 &&
+    validEmail(contact.email.trim()) &&
+    validPhone(contact.phone);
+
+  /** For allowMore questions: is the answer chosen and any required text filled? */
+  function canContinue(): boolean {
+    const sel = answers[question.id];
+    if (!sel) return false;
+    if (question.moreRequiredForValue && sel === question.moreRequiredForValue) {
+      return Boolean((notes[question.id] || "").trim());
+    }
+    return true;
+  }
 
   async function submit() {
     setPhase("submitting");
@@ -84,6 +137,11 @@ export default function Quiz() {
         throw new Error(data.error || `Something went wrong (${res.status}).`);
       }
       const data = (await res.json()) as ServerResult;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
       setResult(data);
       setPhase("result");
     } catch (err) {
@@ -100,8 +158,8 @@ export default function Quiz() {
     <div className="card">
       <div className="brandbar">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Talk Money With Tish & Associates" />
-          <span>Talk Money With Tish &amp; Associates</span>
+          <img src="/logo.png" alt="Talk Money With Tish" />
+          <span>Talk Money With Tish</span>
         </div>
 
         <div className="card-body">
@@ -138,17 +196,29 @@ export default function Quiz() {
                 })}
               </div>
 
-              {question.allowMore && (
-                <div className="more">
-                  <textarea
-                    placeholder={question.morePlaceholder || "Optional — tell us more."}
-                    value={notes[question.id] || ""}
-                    onChange={(e) =>
-                      setNotes((n) => ({ ...n, [question.id]: e.target.value }))
-                    }
-                  />
-                </div>
-              )}
+              {question.allowMore && (() => {
+                const moreRequired =
+                  question.moreRequiredForValue &&
+                  answers[question.id] === question.moreRequiredForValue;
+                return (
+                  <div className="more">
+                    <textarea
+                      placeholder={
+                        moreRequired
+                          ? "Required — tell us in your own words…"
+                          : question.morePlaceholder || "Optional — tell us more."
+                      }
+                      value={notes[question.id] || ""}
+                      onChange={(e) =>
+                        setNotes((n) => ({ ...n, [question.id]: e.target.value }))
+                      }
+                    />
+                    {moreRequired && !(notes[question.id] || "").trim() && (
+                      <p className="more-hint">Please add a sentence so we can match you well.</p>
+                    )}
+                  </div>
+                );
+              })()}
 
               <div className="nav">
                 <button type="button" className="btn btn-ghost" onClick={back}>
@@ -158,7 +228,7 @@ export default function Quiz() {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    disabled={!answers[question.id]}
+                    disabled={!canContinue()}
                     onClick={advance}
                   >
                     Continue
@@ -221,15 +291,18 @@ export default function Quiz() {
 
               <div className="field-group">
                 <label className="field" htmlFor="phone">
-                  Phone <span style={{ color: "var(--muted)", fontWeight: 400 }}>(optional)</span>
+                  Phone
                 </label>
                 <input
                   id="phone"
                   type="tel"
+                  inputMode="tel"
                   autoComplete="tel"
+                  required
                   value={contact.phone}
                   onChange={(e) => setContact({ ...contact, phone: e.target.value })}
                 />
+                <p className="more-hint">We'll only use this to reach you about your appointment.</p>
               </div>
 
               <div className="nav">
@@ -306,15 +379,9 @@ function Result({ result, contact }: { result: ServerResult; contact: ContactInf
         <CalendarEmbed url={result.calendarEmbedUrl} />
       ) : (
         <div className="fallback">
-          <strong>Almost there.</strong> Your booking calendar isn't connected
-          yet. Once the GHL calendar IDs are added to the environment, your
-          matched calendar will appear right here.
-          {contact.email && (
-            <>
-              {" "}
-              We have your details on file ({contact.email}) and will reach out.
-            </>
-          )}
+          <strong>You're all set.</strong> We've got your details
+          {contact.email ? ` (${contact.email})` : ""} and our team will reach out
+          shortly to lock in your time.
         </div>
       )}
     </div>
