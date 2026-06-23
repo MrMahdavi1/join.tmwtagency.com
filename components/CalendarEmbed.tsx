@@ -3,15 +3,27 @@
 import { useEffect, useState } from "react";
 
 /**
- * Renders a GoHighLevel calendar booking widget inline. The companion
- * form_embed.js script auto-sizes the iframe once it loads.
+ * Renders a GoHighLevel calendar booking widget inline.
  *
- * We always render a direct "open booking page" link as well, so that if the
- * embedded widget is slow or blocked, a high-intent lead is never left without
- * a way to book.
+ * GHL's form_embed.js auto-resizes the iframe to its content height on each
+ * step (calendar view → details form → confirmation) — but only if the iframe
+ * carries an `id` that starts with the calendar id. Without it the script can't
+ * match the iframe, so it never grows and taller steps (the details form) get
+ * clipped. We set that id, let the iframe grow in normal flow, and keep a
+ * min-height so it never collapses while loading.
+ *
+ * A direct "open booking page" link is always shown as a safety net.
  */
 export default function CalendarEmbed({ url }: { url: string }) {
   const [loaded, setLoaded] = useState(false);
+
+  const calendarId = (() => {
+    try {
+      return new URL(url).pathname.split("/").filter(Boolean).pop() || "ghl-cal";
+    } catch {
+      return "ghl-cal";
+    }
+  })();
 
   useEffect(() => {
     const id = "ghl-form-embed";
@@ -29,9 +41,11 @@ export default function CalendarEmbed({ url }: { url: string }) {
       <div className="calendar-wrap">
         <iframe
           src={url}
+          id={calendarId}
           title="Booking calendar"
-          loading="lazy"
+          scrolling="no"
           onLoad={() => setLoaded(true)}
+          style={{ width: "100%", border: "none" }}
         />
       </div>
       <p className="calendar-fallback-link">

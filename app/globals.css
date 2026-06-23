@@ -379,31 +379,22 @@ label.field {
   margin-bottom: 16px;
 }
 
-/* GHL's form_embed.js sets the iframe to position:absolute, so the wrapper
-   must be positioned and carry its own height — otherwise it collapses and
-   clips the calendar. */
+/* The iframe grows in normal flow as form_embed.js resizes it per step, so the
+   wrapper grows with it (no clipping). min-height keeps it from collapsing
+   before the script runs. */
 .calendar-wrap {
-  position: relative;
-  height: 760px;
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
   background: var(--paper);
+  min-height: 700px;
 }
 
 .calendar-wrap iframe {
-  position: absolute;
-  inset: 0;
   width: 100%;
-  height: 100%;
+  min-height: 700px;
   border: none;
   display: block;
-}
-
-@media (max-width: 560px) {
-  .calendar-wrap {
-    height: 680px;
-  }
 }
 
 .fallback {
