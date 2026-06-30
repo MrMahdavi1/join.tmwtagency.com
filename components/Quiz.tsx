@@ -13,6 +13,7 @@ interface ServerResult {
   score: number;
   maxScore: number;
   calendarEmbedUrl: string | null;
+  resourceUrl?: string | null;
 }
 
 const TOTAL_STEPS = QUESTIONS.length + 1; // questions + contact
@@ -368,6 +369,31 @@ function Intro({ onStart }: { onStart: () => void }) {
 
 function Result({ result, contact }: { result: ServerResult; contact: ContactInfo }) {
   const cfg = ROUTES[result.route];
+
+  // "Not a fit" — a polite decline with optional free resources. No booking,
+  // and never the "our team will reach out to lock in your time" message.
+  if (cfg.noBooking) {
+    return (
+      <div className="result">
+        <span className="badge">{cfg.name}</span>
+        <h1>{cfg.headline}</h1>
+        <p className="blurb">{cfg.blurb}</p>
+        {result.resourceUrl && (
+          <div style={{ marginTop: 20 }}>
+            <a
+              className="btn btn-primary"
+              href={result.resourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Explore free resources →
+            </a>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="result">
       <span className="badge">{cfg.name}</span>

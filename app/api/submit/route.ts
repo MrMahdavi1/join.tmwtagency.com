@@ -111,11 +111,17 @@ export async function POST(req: Request) {
 
   const calendarEmbedUrl = getCalendarEmbedUrl(result.route, contact);
 
+  // Optional "free resources" link shown on the not-a-fit screen. Set
+  // NOTFIT_RESOURCE_URL in the environment to enable the button.
+  const resourceUrl =
+    result.route === "notfit" ? process.env.NOTFIT_RESOURCE_URL || null : null;
+
   return NextResponse.json({
     route: result.route,
     score: result.score,
     maxScore: result.maxScore,
     calendarEmbedUrl,
+    resourceUrl,
     crmOk,
     crmError,
   });

@@ -1,6 +1,6 @@
 // Shared domain types for the BPM vs 1:1 qualifier.
 
-export type RouteId = "bpm" | "oneonone" | "tish";
+export type RouteId = "bpm" | "oneonone" | "tish" | "notfit";
 
 export interface Option {
   value: string;

@@ -98,3 +98,38 @@ test("at/above the 60 cutoff routes to 1:1", () => {
   assert.ok(r.score >= 60);
   assert.equal(r.route, "oneonone");
 });
+
+// ---- "Not a fit" worst-track (client request, 6/30) ----
+
+// The full "do everything horrible" walk-through from the call: unlicensed,
+// just exploring, no goal, no experience, won't invest, can't commit.
+const dregs: Answers = {
+  q1: "q1_none",
+  q2: "q2_exploring",
+  q3: "q3_team",
+  q4: "q4_exploring",
+  q5: "q5_none",
+  q6: "q6_results",
+  gateCommit: "gate_no",
+  flagOwner: "flag_newer",
+};
+
+test("rock-bottom answers route to 'not a fit', not BPM", () => {
+  assert.equal(evaluate(dregs).route, "notfit");
+});
+
+test("not-a-fit also fires when they expect it all provided (even if willing to commit)", () => {
+  const r = evaluate({ ...dregs, gateCommit: "gate_yes", q6: "q6_provided" });
+  assert.equal(r.route, "notfit");
+});
+
+test("can't-commit but otherwise solid stays in BPM, not 'not a fit'", () => {
+  // strong baseline (licensed, real goals) who simply can't commit the time.
+  const r = evaluate({ ...strong, gateCommit: "gate_no" });
+  assert.equal(r.route, "bpm");
+});
+
+test("an agency owner is never filtered out, even with weak answers", () => {
+  const r = evaluate({ ...dregs, flagOwner: "flag_agency" });
+  assert.equal(r.route, "tish");
+});

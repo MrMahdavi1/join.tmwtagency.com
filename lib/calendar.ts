@@ -5,14 +5,30 @@ const WIDGET_BASE = "https://api.leadconnectorhq.com/widget/booking";
 
 /**
  * Build the GHL calendar embed URL for a route, with the contact's details
- * prefilled. Returns null if no calendar id is configured for that route yet
- * (lets the app run before the GHL ids are filled in).
+ * prefilled. Returns null if the route books nothing (e.g. "not a fit") or has
+ * no calendar configured yet.
+ *
+ * The configured value can be either:
+ *   - a full booking URL  (e.g. ".../widget/bookings/1on1-interview-w-christina"), or
+ *   - a bare calendar id  (e.g. "Fdsuq47BXjgpKtNacukU") → wrapped in WIDGET_BASE.
+ *
+ * Resolution order: the route's env var wins; otherwise its `defaultCalendarUrl`.
  */
 export function getCalendarEmbedUrl(route: RouteId, contact?: ContactInfo): string | null {
-  const calendarId = process.env[ROUTES[route].calendarEnvKey];
-  if (!calendarId) return null;
+  const cfg = ROUTES[route];
+  if (cfg.noBooking) return null;
 
-  const url = new URL(`${WIDGET_BASE}/${calendarId}`);
+  const fromEnv = process.env[cfg.calendarEnvKey];
+  const raw = (fromEnv && fromEnv.trim()) || cfg.defaultCalendarUrl;
+  if (!raw) return null;
+
+  const base = /^https?:\/\//i.test(raw) ? raw : `${WIDGET_BASE}/${raw}`;
+  let url: URL;
+  try {
+    url = new URL(base);
+  } catch {
+    return null;
+  }
   if (contact) {
     if (contact.firstName) url.searchParams.set("first_name", contact.firstName);
     if (contact.lastName) url.searchParams.set("last_name", contact.lastName);

@@ -18,8 +18,17 @@ export interface RouteConfig {
   /** Label for the booking section. */
   bookingLabel: string;
   calendarEnvKey: string;
+  /**
+   * Hardcoded fallback calendar embed URL used when `calendarEnvKey` is not set
+   * in the environment. Lets a route ship with a guaranteed calendar (e.g. the
+   * 1:1 routing to Christina) without depending on a Vercel env var being set.
+   * The env var, if present, still wins. May be a full booking URL or a bare id.
+   */
+  defaultCalendarUrl?: string;
   tagEnvKey: string;
   defaultTag: string;
+  /** When true, this route books nothing — it's a polite decline. */
+  noBooking?: boolean;
 }
 
 export const ROUTES: Record<RouteId, RouteConfig> = {
@@ -42,6 +51,10 @@ export const ROUTES: Record<RouteId, RouteConfig> = {
       "Your answers tell us you're ready to build. The next step is a 1:1 interview where we get specific about your path. Pick a time that works for you.",
     bookingLabel: "Book your 1:1 interview",
     calendarEnvKey: "GHL_CALENDAR_1ON1",
+    // Christina is the first-round filter for 1:1s (protects Tish's calendar).
+    // Ships as the default so it's guaranteed even if no env var is set.
+    defaultCalendarUrl:
+      "https://api.leadconnectorhq.com/widget/bookings/1on1-interview-w-christina",
     tagEnvKey: "GHL_TAG_1ON1",
     defaultTag: "Qualifier - 1:1 Interview",
   },
@@ -55,5 +68,17 @@ export const ROUTES: Record<RouteId, RouteConfig> = {
     calendarEnvKey: "GHL_CALENDAR_BPM",
     tagEnvKey: "GHL_TAG_BPM",
     defaultTag: "Qualifier - Group BPM",
+  },
+  notfit: {
+    id: "notfit",
+    name: "Not a fit right now",
+    headline: "This may not be the right fit — right now.",
+    blurb:
+      "Thanks for being honest with your answers. Based on where you are today, this opportunity probably isn't the right match just yet — and that's okay. When the timing and the commitment line up, we'd love to reconnect. In the meantime, here are some free resources to help you get started.",
+    bookingLabel: "",
+    calendarEnvKey: "GHL_CALENDAR_NOTFIT", // intentionally unset — no booking
+    tagEnvKey: "GHL_TAG_NOTFIT",
+    defaultTag: "Qualifier - Not a Fit",
+    noBooking: true,
   },
 };
