@@ -1,6 +1,15 @@
 import type { RouteId } from "./types";
 
 /**
+ * Christina's 1:1 booking calendar. Christina is the single first-round filter
+ * for EVERY 1:1 on the qualifier (agency-owner tier included) — Tish's calendar
+ * must never surface here. Hardcoded via `forceCalendarUrl` so no stale Vercel
+ * env var can point a 1:1 route back at Tish.
+ */
+const CHRISTINA_1ON1_URL =
+  "https://api.leadconnectorhq.com/widget/booking/stpcAKnqCXRrOyh372GO";
+
+/**
  * Per-route presentation + GHL wiring.
  *
  * `calendarEnvKey` / `tagEnvKey` are read server-side in the API route so the
@@ -19,10 +28,15 @@ export interface RouteConfig {
   bookingLabel: string;
   calendarEnvKey: string;
   /**
-   * Hardcoded fallback calendar embed URL used when `calendarEnvKey` is not set
-   * in the environment. Lets a route ship with a guaranteed calendar (e.g. the
-   * 1:1 routing to Christina) without depending on a Vercel env var being set.
-   * The env var, if present, still wins. May be a full booking URL or a bare id.
+   * Hardcoded calendar embed URL that ALWAYS wins — over both the env var and
+   * `defaultCalendarUrl`. Use when a route must book a specific calendar no
+   * matter what's configured in the environment (e.g. every 1:1 → Christina).
+   */
+  forceCalendarUrl?: string;
+  /**
+   * Fallback calendar embed URL used when `calendarEnvKey` is not set in the
+   * environment. The env var, if present, wins over this. May be a full booking
+   * URL or a bare id.
    */
   defaultCalendarUrl?: string;
   tagEnvKey: string;
@@ -34,14 +48,17 @@ export interface RouteConfig {
 export const ROUTES: Record<RouteId, RouteConfig> = {
   tish: {
     id: "tish",
-    name: "1:1 with Tish",
+    // The premium tier still gets its own tag for segmentation, but it books
+    // Christina (the first-round filter) — never Tish's calendar directly.
+    name: "Priority 1:1 Interview",
     headline: "Let's talk — one on one.",
     blurb:
-      "Based on your background, this is a conversation, not a presentation. Grab a time directly with Tish to talk through what a new home or partnership could look like.",
-    bookingLabel: "Book your 1:1 with Tish",
+      "Based on your background, this is a conversation, not a presentation. Grab a time to talk through what a new home or partnership could look like.",
+    bookingLabel: "Book your priority 1:1",
     calendarEnvKey: "GHL_CALENDAR_TISH",
+    forceCalendarUrl: CHRISTINA_1ON1_URL,
     tagEnvKey: "GHL_TAG_TISH",
-    defaultTag: "Qualifier - 1:1 with Tish",
+    defaultTag: "Qualifier - Priority 1:1 (Owner/Producer)",
   },
   oneonone: {
     id: "oneonone",
@@ -51,10 +68,8 @@ export const ROUTES: Record<RouteId, RouteConfig> = {
       "Your answers tell us you're ready to build. The next step is a 1:1 interview where we get specific about your path. Pick a time that works for you.",
     bookingLabel: "Book your 1:1 interview",
     calendarEnvKey: "GHL_CALENDAR_1ON1",
-    // Christina is the first-round filter for 1:1s (protects Tish's calendar).
-    // Ships as the default so it's guaranteed even if no env var is set.
-    defaultCalendarUrl:
-      "https://api.leadconnectorhq.com/widget/bookings/1on1-interview-w-christina",
+    // Every 1:1 books Christina, guaranteed (env can't override).
+    forceCalendarUrl: CHRISTINA_1ON1_URL,
     tagEnvKey: "GHL_TAG_1ON1",
     defaultTag: "Qualifier - 1:1 Interview",
   },
