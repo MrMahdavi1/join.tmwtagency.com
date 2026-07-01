@@ -89,7 +89,7 @@ export const ROUTES: Record<RouteId, RouteConfig> = {
     name: "Not a fit right now",
     headline: "This may not be the right fit — right now.",
     blurb:
-      "Thanks for being honest with your answers. Based on where you are today, this opportunity probably isn't the right match just yet — and that's okay. When the timing and the commitment line up, we'd love to reconnect. In the meantime, here are some free resources to help you get started.",
+      "Thanks for being honest with your answers. Based on where you are today, this opportunity probably isn't the right match just yet — and that's okay. When the timing and the commitment line up, we'd love to reconnect.",
     bookingLabel: "",
     calendarEnvKey: "GHL_CALENDAR_NOTFIT", // intentionally unset — no booking
     tagEnvKey: "GHL_TAG_NOTFIT",
