@@ -159,8 +159,8 @@ export default function Quiz() {
     <div className="card">
       <div className="brandbar">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Talk Money With Tish" />
-          <span>Talk Money With Tish</span>
+          <img src="/logo.png" alt="TMWT Agency" />
+          <span>TMWT Agency</span>
         </div>
 
         <div className="card-body">

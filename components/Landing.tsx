@@ -57,7 +57,7 @@ const PERSONAS = [
   {
     tag: "Agency owner",
     title: "Ready to Scale or Relocate",
-    body: "You've built something solid — an agency, a team, a vision. Tired of limited contracts, outdated tech, or being boxed in? TMWT (powered by GFI) offers a new foundation built on transparency and long-term value.",
+    body: "You've built something solid — an agency, a team, a vision. Tired of limited contracts, outdated tech, or being boxed in? TMWT Agency offers a new foundation built on transparency and long-term value.",
   },
 ];
 
@@ -69,8 +69,8 @@ export default function Landing() {
         <div className="container site-header-inner">
           <a className="brand" href="#top">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Talk Money With Tish" />
-            <span>Talk Money With Tish</span>
+            <img src="/logo.png" alt="TMWT Agency" />
+            <span>TMWT Agency</span>
           </a>
           <a className="btn btn-primary btn-sm" href="#quiz">
             Find your path →
@@ -192,7 +192,7 @@ export default function Landing() {
       {/* ---------- Footer ---------- */}
       <footer className="site-footer">
         <div className="container">
-          © 2026 Talk Money With Tish. All rights reserved.
+          © 2026 TMWT Agency. All rights reserved.
         </div>
       </footer>
     </div>
