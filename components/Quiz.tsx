@@ -24,9 +24,34 @@ export default function Quiz() {
   const [qIndex, setQIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [notes, setNotes] = useState<Notes>({});
+  const [agentMatches, setAgentMatches] = useState<{ name: string; id: string }[]>([]);
+  const agentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /** Debounced. Typing a name should not fire a request per keystroke. */
+  const lookupAgents = (q: string) => {
+    if (agentTimer.current) clearTimeout(agentTimer.current);
+    if (q.trim().length < 2) {
+      setAgentMatches([]);
+      return;
+    }
+    agentTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/agents?q=${encodeURIComponent(q.trim())}`);
+        const data = await res.json();
+        setAgentMatches(data.agents || []);
+      } catch {
+        // A lookup failure must not stop anyone booking; they can type the name.
+        setAgentMatches([]);
+      }
+    }, 250);
+  };
+
   const [contact, setContact] = useState<ContactInfo>({
     firstName: "",
     lastName: "",
+    referred: "",
+    referrerId: "",
+    referrerName: "",
     email: "",
     phone: "",
   });
@@ -305,6 +330,75 @@ export default function Quiz() {
                 />
                 <p className="more-hint">We'll only use this to reach you about your appointment.</p>
               </div>
+
+              {/* Referral, asked last. Decided 8 Sept: yes or no first, then a
+                  typeahead by name if yes. Never a bare dropdown, because
+                  Christina: "they'll just pick a name, whether it's real or
+                  not." The agent code is resolved server-side and never shown. */}
+              <div className="field-group">
+                <label className="field">Were you referred by an agent?</label>
+                <div className="ref-choice">
+                  {(["yes", "no"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`btn btn-ghost${contact.referred === v ? " on" : ""}`}
+                      onClick={() =>
+                        setContact({
+                          ...contact,
+                          referred: v,
+                          ...(v === "no" ? { referrerId: "", referrerName: "" } : {}),
+                        })
+                      }
+                    >
+                      {v === "yes" ? "Yes" : "No"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {contact.referred === "yes" && (
+                <div className="field-group">
+                  <label className="field" htmlFor="referrer">
+                    Who referred you?
+                  </label>
+                  <input
+                    id="referrer"
+                    type="text"
+                    autoComplete="off"
+                    placeholder="Start typing their first or last name"
+                    value={contact.referrerName || ""}
+                    onChange={(e) => {
+                      // Typing clears any previous pick, so a stale id can never
+                      // ride along with a name they have since edited.
+                      setContact({ ...contact, referrerName: e.target.value, referrerId: "" });
+                      lookupAgents(e.target.value);
+                    }}
+                  />
+                  {agentMatches.length > 0 && !contact.referrerId && (
+                    <ul className="ref-matches">
+                      {agentMatches.map((a) => (
+                        <li key={a.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setContact({ ...contact, referrerName: a.name, referrerId: a.id });
+                              setAgentMatches([]);
+                            }}
+                          >
+                            {a.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="more-hint">
+                    {contact.referrerId
+                      ? "Got it, we will make sure they get the credit."
+                      : "Pick their name from the list so the right person gets credit. If you cannot find them, just type the name and we will sort it out."}
+                  </p>
+                </div>
+              )}
 
               <div className="nav">
                 <button type="button" className="btn btn-ghost" onClick={back}>

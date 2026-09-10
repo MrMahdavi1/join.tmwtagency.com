@@ -786,3 +786,35 @@ html {
 .calendar-fallback-link a:hover {
   text-decoration: underline;
 }
+
+/* Referral capture on the last step. Decided 8 Sept: yes/no, then a typeahead
+   by name. Never a bare dropdown; people pick a name at random when they do not
+   know, and unpicking an agent from a contact is a manual job on the back end. */
+.ref-choice { display: flex; gap: 10px; }
+.ref-choice .btn { flex: 0 0 auto; min-width: 92px; }
+.ref-choice .btn.on {
+  background: #14413C;
+  color: #F7F5F0;
+  border-color: #14413C;
+}
+.ref-matches {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 1px solid #E3DED3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.ref-matches li + li { border-top: 1px solid #EFEBE0; }
+.ref-matches button {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.ref-matches button:hover { background: #F7F5F0; }

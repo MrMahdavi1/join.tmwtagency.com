@@ -27,7 +27,12 @@ export interface UpsertContactInput {
   phone: string;
   tags: string[];
   /** id -> field value; ids come from your GHL custom fields (optional). */
-  customFields?: { id: string; value: string }[];
+  /**
+   * GHL accepts either { id, value } or { key, field_value }. We use the key
+   * form so the code does not have to carry field ids that differ per account.
+   * Proven in the PFR app.
+   */
+  customFields?: ({ id: string; value: string } | { key: string; field_value: string })[];
 }
 
 export interface UpsertContactResult {

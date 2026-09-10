@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { evaluate, DEFAULT_THRESHOLD } from "@/lib/scoring";
+import { resolveAgentCode } from "@/lib/agents";
 import { ROUTES } from "@/lib/routes";
 import { getCalendarEmbedUrl } from "@/lib/calendar";
 import { QUESTIONS, LABEL_BY_VALUE } from "@/lib/questions";
@@ -81,12 +82,27 @@ export async function POST(req: Request) {
       const routeTag = process.env[routeConfig.tagEnvKey] || routeConfig.defaultTag;
       const tags = [routeTag, "Qualifier Lead"];
 
+      // Referral, decided 8 Sept. The client sends the agent's GHL id, never a
+      // code, so a guest cannot type someone else's code into the form. The code
+      // is looked up here and written to the contact.
+      let referral: { name: string; code: string } | null = null;
+      if (contact.referred === "yes" && contact.referrerId) {
+        referral = await resolveAgentCode(contact.referrerId);
+      }
+      if (referral) tags.push("Referred By Agent");
+
       const { contactId } = await upsertContact({
         firstName: contact.firstName.trim(),
         lastName: (contact.lastName || "").trim(),
         email: contact.email.trim(),
         phone: (contact.phone || "").trim(),
         tags,
+        customFields: referral
+          ? [
+              { key: "referring_agent_code", field_value: referral.code },
+              { key: "referred_by_who_invited_you", field_value: referral.name },
+            ]
+          : undefined,
       });
 
       await addNote(contactId, buildTranscript(contact, answers, notes, result));

@@ -28,6 +28,16 @@ export interface ContactInfo {
   lastName: string;
   email: string;
   phone: string;
+  /**
+   * Referral capture, decided 8 Sept. Asked LAST, after routing.
+   * Tish: "First we got to make sure we have to figure out if they're qualified
+   * for a one-on-one or BPM, and then who invited them."
+   */
+  referred?: "yes" | "no" | "";
+  /** GHL contact id of the picked agent. The code is resolved server-side. */
+  referrerId?: string;
+  /** What they picked, kept only so the field can show it back to them. */
+  referrerName?: string;
 }
 
 /** Map of questionId -> selected option value. */
