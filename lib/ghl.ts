@@ -77,6 +77,46 @@ export async function upsertContact(input: UpsertContactInput): Promise<UpsertCo
 }
 
 /**
+ * Default owner for qualifier contacts. Tish, decided 11-12 Sept.
+ *
+ * Shawn, 12 Sept: "Tish will own a contact that arrives without an agent code."
+ * On the 11 Sept call the same applied to referred contacts: the referring agent
+ * is not a GHL user, so cannot own anyone. Christina: "Tish is the owner of the
+ * contact."
+ *
+ * Env can override (GHL_DEFAULT_OWNER_USER_ID) for a future owner change without
+ * a code edit.
+ */
+const TISH_USER_ID = "3paDvmghpJjcCik1x7Ub";
+
+/**
+ * Give a contact an owner, but only if it has none.
+ *
+ * Someone re-taking the qualifier may already belong to a trainer or the
+ * licensing coordinator. Overwriting that would silently move a working
+ * relationship to Tish, so an existing owner always wins.
+ */
+export async function assignOwnerIfUnowned(contactId: string): Promise<"assigned" | "kept"> {
+  const userId = process.env.GHL_DEFAULT_OWNER_USER_ID || TISH_USER_ID;
+
+  const read = await fetch(`${API_BASE}/contacts/${contactId}`, { headers: authHeaders() });
+  if (!read.ok) throw new Error(`GHL contact read failed (${read.status})`);
+  const current = ((await read.json()) as { contact?: { assignedTo?: string } }).contact;
+  if (current?.assignedTo) return "kept";
+
+  const res = await fetch(`${API_BASE}/contacts/${contactId}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ assignedTo: userId }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GHL assign owner failed (${res.status}): ${text}`);
+  }
+  return "assigned";
+}
+
+/**
  * Attach a note (we use this to persist the full questionnaire transcript so no
  * custom-field setup is required in GHL).
  * Docs: POST /contacts/{contactId}/notes

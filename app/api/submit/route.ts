@@ -4,7 +4,7 @@ import { resolveAgentCode } from "@/lib/agents";
 import { ROUTES } from "@/lib/routes";
 import { getCalendarEmbedUrl } from "@/lib/calendar";
 import { QUESTIONS, LABEL_BY_VALUE } from "@/lib/questions";
-import { addNote, createOpportunity, ghlConfigured, upsertContact } from "@/lib/ghl";
+import { addNote, assignOwnerIfUnowned, createOpportunity, ghlConfigured, upsertContact } from "@/lib/ghl";
 import type { Answers, ContactInfo, Notes } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -104,6 +104,14 @@ export async function POST(req: Request) {
             ]
           : undefined,
       });
+
+      // Owner: Tish, unless someone already owns this contact. Best-effort, so an
+      // ownership hiccup never costs the candidate their booking.
+      try {
+        await assignOwnerIfUnowned(contactId);
+      } catch (e) {
+        console.error("[qualifier] owner assignment failed:", e instanceof Error ? e.message : e);
+      }
 
       await addNote(contactId, buildTranscript(contact, answers, notes, result));
 
