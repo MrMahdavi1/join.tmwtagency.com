@@ -9,6 +9,31 @@ import type { Answers, ContactInfo, Notes } from "@/lib/types";
 
 export const runtime = "nodejs";
 
+/**
+ * Referral routing for 1:1s, Christina 13 Oct.
+ *
+ * An agent who is allowed to run their own 1:1 has a calendar id in the
+ * `one_on_one_calendar` field on their contact record. Christina's "elite CFTs".
+ * When such an agent refers someone and the answers qualify for a 1:1, the
+ * booking goes on THAT agent's calendar instead of the route default.
+ *
+ * What happens when a NON-elite agent refers a 1:1-qualified candidate is the
+ * one piece still open. Christina: "I don't want all of their one-on-ones
+ * landing on my calendar... my initial thinking is that referrals from non-CFT
+ * agents go to the group BPM. Let's settle this in our meeting."
+ *
+ * Flip this constant once they settle it. "bpm" is her stated leaning.
+ *   "bpm"       -> downgrade the route to the group Company Overview
+ *   "christina" -> keep the old behaviour, every 1:1 lands on Christina
+ *
+ * Note this only applies to REFERRED candidates. Someone who arrives from the
+ * website with no referrer and qualifies for a 1:1 still books Christina, which
+ * is the original design and is deliberately untouched.
+ */
+const NON_CFT_REFERRAL: "bpm" | "christina" = "bpm";
+
+const ONE_ON_ONE_ROUTES = new Set(["oneonone", "tish"]);
+
 interface SubmitBody {
   contact: ContactInfo;
   answers: Answers;
@@ -72,6 +97,33 @@ export async function POST(req: Request) {
   // ---- Recompute the route server-side (never trust the client) ----
   const threshold = Number(process.env.QUALIFIER_THRESHOLD) || DEFAULT_THRESHOLD;
   const result = evaluate(answers, threshold);
+
+  // Referral, decided 8 Sept. The client sends the agent's GHL id, never a code,
+  // so a guest cannot type someone else's code into the form. Resolved here
+  // because the routing below needs it, not just the CRM write.
+  let referral: { name: string; code: string; calendarId: string } | null = null;
+  if (contact.referred === "yes" && contact.referrerId) {
+    try {
+      referral = await resolveAgentCode(contact.referrerId);
+    } catch (e) {
+      // A lookup failure must never cost the candidate their booking.
+      console.error("[qualifier] agent lookup failed:", e instanceof Error ? e.message : e);
+    }
+  }
+
+  // Send the 1:1 to the referring agent when they are allowed to take one.
+  let agentCalendarId: string | null = null;
+  if (ONE_ON_ONE_ROUTES.has(result.route)) {
+    if (referral?.calendarId) {
+      agentCalendarId = referral.calendarId;
+    } else if (referral && NON_CFT_REFERRAL === "bpm") {
+      // Referred by someone who does not run their own 1:1s. They have already
+      // been screened by a human, so the group overview is the right next step.
+      result.route = "bpm";
+      result.reasons.push("Referred by an agent who does not run 1:1s, so routed to the group overview.");
+    }
+  }
+
   const routeConfig = ROUTES[result.route];
 
   // ---- Persist to GHL (best-effort; never block the booking on a failure) ----
@@ -82,13 +134,6 @@ export async function POST(req: Request) {
       const routeTag = process.env[routeConfig.tagEnvKey] || routeConfig.defaultTag;
       const tags = [routeTag, "Qualifier Lead"];
 
-      // Referral, decided 8 Sept. The client sends the agent's GHL id, never a
-      // code, so a guest cannot type someone else's code into the form. The code
-      // is looked up here and written to the contact.
-      let referral: { name: string; code: string } | null = null;
-      if (contact.referred === "yes" && contact.referrerId) {
-        referral = await resolveAgentCode(contact.referrerId);
-      }
       if (referral) tags.push("Referred By Agent");
 
       const { contactId } = await upsertContact({
@@ -133,7 +178,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const calendarEmbedUrl = getCalendarEmbedUrl(result.route, contact);
+  const calendarEmbedUrl = getCalendarEmbedUrl(result.route, contact, agentCalendarId);
 
   // Optional "free resources" link shown on the not-a-fit screen. Set
   // NOTFIT_RESOURCE_URL in the environment to enable the button.

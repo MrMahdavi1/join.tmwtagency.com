@@ -30,6 +30,10 @@
 
 const GHL = "https://services.leadconnectorhq.com";
 const AGENT_CODE_KEY = "agent_code_number";
+// Set only for the agents allowed to take a 1:1 themselves (Christina's "elite
+// CFTs", 13 Oct). Holds a GHL calendar id. An agent without it falls back, see
+// NON_CFT_REFERRAL in app/api/submit/route.ts.
+const ONE_ON_ONE_CAL_KEY = "one_on_one_calendar";
 
 export interface AgentMatch {
   /** Shown in the dropdown. */
@@ -39,10 +43,11 @@ export interface AgentMatch {
 }
 
 /** Cached for a minute. The list changes at ICA pace, not per keystroke. */
-let cache: { at: number; rows: { name: string; code: string; id: string }[] } | null = null;
+type AgentRow = { name: string; code: string; id: string; calendarId: string };
+let cache: { at: number; rows: AgentRow[] } | null = null;
 const TTL_MS = 60_000;
 
-async function loadAgents(): Promise<{ name: string; code: string; id: string }[]> {
+async function loadAgents(): Promise<AgentRow[]> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.rows;
 
   const token = process.env.GHL_API_TOKEN;
@@ -63,12 +68,16 @@ async function loadAgents(): Promise<{ name: string; code: string; id: string }[
   });
   if (!defsRes.ok) return [];
   const defs = await defsRes.json();
-  const field = (defs?.customFields || []).find(
-    (f: { fieldKey?: string }) => String(f.fieldKey || "").replace(/^contact\./, "") === AGENT_CODE_KEY
-  );
+  const byKey = (key: string) =>
+    (defs?.customFields || []).find(
+      (f: { fieldKey?: string }) => String(f.fieldKey || "").replace(/^contact\./, "") === key
+    );
+  const field = byKey(AGENT_CODE_KEY);
   if (!field) return [];
+  // Optional: absent until somebody creates it, which must not break the lookup.
+  const calField = byKey(ONE_ON_ONE_CAL_KEY);
 
-  const rows: { name: string; code: string; id: string }[] = [];
+  const rows: AgentRow[] = [];
   for (let page = 1; page <= 5; page++) {
     const res = await fetch(`${GHL}/contacts/?locationId=${locationId}&limit=100&page=${page}`, {
       headers,
@@ -80,7 +89,10 @@ async function loadAgents(): Promise<{ name: string; code: string; id: string }[
       const code = (c.customFields || []).find((f: { id: string }) => f.id === field.id)?.value;
       if (!code) continue;
       const name = [c.firstName, c.lastName].filter(Boolean).join(" ").trim();
-      if (name) rows.push({ name, code: String(code), id: c.id });
+      const calendarId = calField
+        ? String((c.customFields || []).find((f: { id: string }) => f.id === calField.id)?.value || "").trim()
+        : "";
+      if (name) rows.push({ name, code: String(code), id: c.id, calendarId });
     }
     if (batch.length < 100) break;
   }
@@ -90,12 +102,14 @@ async function loadAgents(): Promise<{ name: string; code: string; id: string }[
 }
 
 /** Server-side resolution of a picked agent to their code. Used by the submit route. */
-export async function resolveAgentCode(id: string): Promise<{ name: string; code: string } | null> {
+export async function resolveAgentCode(
+  id: string
+): Promise<{ name: string; code: string; calendarId: string } | null> {
   if (!id) return null;
   try {
     const rows = await loadAgents();
     const hit = rows.find((r) => r.id === id);
-    return hit ? { name: hit.name, code: hit.code } : null;
+    return hit ? { name: hit.name, code: hit.code, calendarId: hit.calendarId } : null;
   } catch {
     return null;
   }

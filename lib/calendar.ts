@@ -12,15 +12,24 @@ const WIDGET_BASE = "https://api.leadconnectorhq.com/widget/booking";
  *   - a full booking URL  (e.g. ".../widget/bookings/1on1-interview-w-christina"), or
  *   - a bare calendar id  (e.g. "Fdsuq47BXjgpKtNacukU") → wrapped in WIDGET_BASE.
  *
- * Resolution order: `forceCalendarUrl` (always wins) → the route's env var →
+ * Resolution order: `override` (the referring agent's own 1:1 calendar, when the
+ * caller has decided one applies) → `forceCalendarUrl` → the route's env var →
  * its `defaultCalendarUrl`.
  */
-export function getCalendarEmbedUrl(route: RouteId, contact?: ContactInfo): string | null {
+export function getCalendarEmbedUrl(
+  route: RouteId,
+  contact?: ContactInfo,
+  override?: string | null,
+): string | null {
   const cfg = ROUTES[route];
   if (cfg.noBooking) return null;
 
   const fromEnv = process.env[cfg.calendarEnvKey];
-  const raw = cfg.forceCalendarUrl || (fromEnv && fromEnv.trim()) || cfg.defaultCalendarUrl;
+  const raw =
+    (override && override.trim()) ||
+    cfg.forceCalendarUrl ||
+    (fromEnv && fromEnv.trim()) ||
+    cfg.defaultCalendarUrl;
   if (!raw) return null;
 
   const base = /^https?:\/\//i.test(raw) ? raw : `${WIDGET_BASE}/${raw}`;
