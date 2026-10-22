@@ -88,7 +88,9 @@ async function loadAgents(): Promise<AgentRow[]> {
     for (const c of batch) {
       const code = (c.customFields || []).find((f: { id: string }) => f.id === field.id)?.value;
       if (!code) continue;
-      const name = [c.firstName, c.lastName].filter(Boolean).join(" ").trim();
+      // The list endpoint lowercases firstName/lastName and carries the typed
+      // spelling in firstNameRaw/lastNameRaw (Christina, 20 Oct: "christopher ryskey").
+      const name = [c.firstNameRaw || c.firstName, c.lastNameRaw || c.lastName].filter(Boolean).join(" ").trim();
       const calendarId = calField
         ? String((c.customFields || []).find((f: { id: string }) => f.id === calField.id)?.value || "").trim()
         : "";
